@@ -1,0 +1,76 @@
+<?php
+
+require_once('dbconfig.php');
+
+class VERWERK
+{	
+
+	private $conn;
+	
+	public function __construct()
+	{
+            $database = new Database();
+            $db = $database->dbConnection();
+            $this->conn = $db;
+        }
+		
+	public function doShaveToDB($huis, $naam, $plaats, $periode, $datum, $tekst, $cijfer)
+	{
+            try { 
+                $foto= NULL;
+                $sth = $this->conn->prepare("INSERT INTO review (huis, naam, plaats, periode, datum, tekst, foto, cijfer)
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                $sth->bindParam (1, $huis);
+                $sth->bindParam (2, $naam);
+                $sth->bindParam (3, $plaats);
+                $sth->bindParam (4, $periode);
+                $sth->bindParam (5, $datum);
+                $sth->bindParam (6, $tekst);
+                $sth->bindParam (7, $foto);
+                $sth->bindParam (8, $cijfer);
+
+                $sth->execute();
+            }
+            catch(PDOException $e)
+            {
+                echo $e->getMessage();
+            }
+	}
+	
+	public function doReadFromDB()
+	{
+            try {
+                $sth = $this->conn->query('SELECT * FROM review');
+                $rows = $sth->fetchAll(PDO::FETCH_ASSOC);
+                    //$rows contains the fetched records in an associative array
+                echo "<br><br><br>";
+                //var_dump($sth);
+                $gemiddelde = 0;
+                $teller = 0;
+                foreach ($rows as $row) {
+                    echo "Huis: " . $row["huis"]. "<br>". " - Naam: ". $row["naam"]. "<br>". " - Woonplaats" . $row["plaats"]. "<br>"
+                        ."- Periode: " . $row["periode"]. "<br>"."- Datum: " . $row["datum"]. "<br>". " - Tekst: " . $row["tekst"]. "<br>" 
+                        . "<br>". " - Waardering: " . $row["cijfer"]. "<br>";
+                    echo "<br> <br>";
+                    $gemiddelde += $row["cijfer"];
+                    $teller++;
+
+                }
+                $gemiddelde = $gemiddelde /$teller;
+                echo "gemiddelde waardering is: "; 
+                printf("%.1f",$gemiddelde);
+                echo "<br><br>";
+            } 
+            catch(PDOException $e) {
+                echo "<br><br><br>";
+                echo $e->getMessage();
+                
+            }
+	}
+        
+
+        
+        
+
+}
+?>
